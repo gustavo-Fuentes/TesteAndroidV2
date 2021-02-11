@@ -2,30 +2,28 @@ package com.example.testeandroidv2.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.example.testeandroidv2.R;
-import com.example.testeandroidv2.api.InterfaceAPI;
-import com.example.testeandroidv2.api.RetrofitClientInstance;
+import com.example.testeandroidv2.api.ApiClient;
+import com.example.testeandroidv2.model.LoginRequest;
 import com.example.testeandroidv2.model.LoginResponse;
+
+import org.jetbrains.annotations.NotNull;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class LoginActivity extends AppCompatActivity {
 
     EditText userInput, passwordInput;
     Button btn_Send;
-
-    //test_user
-    //Test@1
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,55 +34,73 @@ public class LoginActivity extends AppCompatActivity {
         passwordInput = findViewById(R.id.passwordInput);
         btn_Send = findViewById(R.id.send);
 
-        btn_Send.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                String user = userInput.getText().toString();
-                String password = passwordInput.getText().toString();
-                //String authToken = createAuthToken(user,password);
-
-                checkLogin();
-                System.out.println(user);
-
-            }
-        });
     }
 
+    private void checkLogin(String user, String password) {
+
+        LoginRequest loginRequest = new LoginRequest(user, password);
+
+        Call<LoginResponse> loginResponseCall = ApiClient.getUserService().userLogin(loginRequest);
 
 
-    private void checkLogin(){
-        Intent i = new Intent(LoginActivity.this,  CurrencyActivity.class);
-        Retrofit retro = RetrofitClientInstance.getRetrofitInstance();
-        final InterfaceAPI api = retro.create(InterfaceAPI.class);
+        if (userValidate(user) && passwordValidate(password)) {
 
-        Call<LoginResponse> call = api.getLogin("test_user", "Test@1");
+            loginResponseCall.enqueue(new Callback<LoginResponse>() {
+                @Override
+                public void onResponse(@NotNull Call<LoginResponse> call, @NotNull Response<LoginResponse> response) {
 
-        call.enqueue(new Callback<LoginResponse>() {
-            @Override
-            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
-
-                if(response.isSuccessful()){
-
-                    System.out.println(response.body().getUser() + " / " + response.body().getPassword());
-
-                    if(response.body().getUser().equals("test_us")){
-                        startActivity(i);
-                    }
-
+                    LoginResponse loginResponse = response.body();
+                    Toast.makeText(LoginActivity.this, "Success", Toast.LENGTH_SHORT).show();
 
                 }
-            }
 
-            @Override
-            public void onFailure(Call<LoginResponse> call, Throwable t) {
-                Log.e("TAG", t.toString());
-                t.printStackTrace();
-            }
-        });
+                @Override
+                public void onFailure(@NotNull Call<LoginResponse> call, @NotNull Throwable t) {
+                }
+            });
+
+
+        }
+
+        else {
+            Toast.makeText(LoginActivity.this, "Failed in validated the user or password ", Toast.LENGTH_SHORT).show();
+        }
+
+
+    }
+
+    public boolean userValidate(String usr) {
+
+        String cpf_regex = "\\d{3}\\.?\\d{3}\\.?\\d{3}-?\\d{2}";
+        String email_regex = "\\S+@\\S+\\.\\S+";
+
+        boolean cpfValidate = usr.matches(cpf_regex) && usr.length() == 11;
+        boolean emailValidate = usr.matches(email_regex);
+
+        return cpfValidate || emailValidate;
+    }
+
+    public boolean passwordValidate(String password) {
+
+        String password_regex = "^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%&+^=])(?=\\S+$).{4,}$";
+        return password.matches(password_regex);
     }
 
 
+    public void onLogin(View view) {
 
+        String user = userInput.getText().toString();
+        String password = passwordInput.getText().toString();
 
+        if (user.length() <= 0 || password.length() <= 0) {
+            Toast.makeText(LoginActivity.this, "user and password are require" + user, Toast.LENGTH_SHORT).show();
+        }
+
+        else {
+
+            checkLogin(user, password);
+
+        }
+
+    }
 }
