@@ -38,7 +38,7 @@
         android:layout_marginTop="21dp"
         android:background="@drawable/edit_text_border"
         android:importantForAutofill="no"
-        android:inputType="text|number"
+        android:inputType="textPassword"
         android:hint="@string/password"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -58,6 +58,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/passwordInput"
-        android:onClick="loginCheck"/>
+        app:layout_constraintTop_toBottomOf="@+id/passwordInput"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
